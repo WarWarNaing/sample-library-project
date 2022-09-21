@@ -1,0 +1,48 @@
+﻿@model DAL.Model.Customer
+
+<div class="card">
+    <div class="card-header"><h3 class="text-center font-weight-light my-6">Add New Customer</h3></div>
+    <div class="card-body">
+        <form id="ModuleForm" method="Post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>Customer Name</label>
+                    <input class="form-control" id="customerName" value="@Model.CustomerName" name="CustomerName" type="text" placeholder="Enter your Name" required/>
+                    @Html.HiddenFor(x => x.CustomerId)
+                </div>
+                <div class="col-md-6">
+                    <label for="phone">Phone</label>
+                    <input class="form-control" id="phone" value="@Model.Phone" name="Phone" type="text" placeholder="Enter your Phone" required/>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>State</label>
+                    <select name="State" id="DD_state" class="form-control" style="appearance: auto !important;"  required>
+                        <option value="">-------Select State-------</option>
+                    </select>
+                    <input type="hidden" id="state" value="@Model.State" />
+                </div>
+                <div class="col-md-6">
+                    <label>Township</label>
+                    <select name="Township" id="DD_township" class="form-control" style="appearance: auto !important;" required>
+                        <option value="">-------Select Township-------</option>
+                    </select>
+                    <input type="hidden" id="township" value="@Model.Township" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="address">Address</label>
+                    <textarea class="form-control" id="address" name="Address" type="text" placeholder="Enter your current living address" required>@Model.Address</textarea>
+                </div>
+            </div>
+            <div class="row card-footer text-center py-3" style="padding-right:0px!important">
+                <div class="col-md-12">
+                    <button class="btn btn-custom btn-block" type="submit" style="float:right;margin-left:10px;">Save Customer</button>
+                    <a class="btn btn-default btn-block" data-dismiss="modal" style="color:white;background-color:darkgray;float:right;" onclick="btnClose()">Close</a>
+                </div>
+            </div>
+        </form>
+    </div>   
+</div>

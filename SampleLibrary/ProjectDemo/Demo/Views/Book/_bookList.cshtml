@@ -1,0 +1,82 @@
+﻿
+@model DAL.Model.PagedListClient<DAL.Model.Book>
+@using PagedList;
+@using PagedList.Mvc;
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-table me-1"></i>
+        Book List
+    </div>
+    <div class="card-body" style="overflow-x:scroll;overflow-y:scroll;">
+        <table class="table table-bordered table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Books</th>
+                    <th>Category</th>
+                    <th>Author</th>
+                    <th>Quantity</th>
+                    <th>Book Price</th>
+                    <th>Rent Price</th>
+                    <th>Reached Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Results)
+                {
+                    <tr>
+                        <td>
+                            <span>
+                                @{
+                                    if (item.Photo != null)
+                                    {
+                                        foreach (var image in item.Photo.Split('_'))
+                                        {
+                                            if (image != "")
+                                            {
+                                                <img src="@image" style="width: 80px; height: 80px;border-radius:10px" />
+                                            }
+                                        }
+                                    }
+                                }
+                            </span>
+                        </td>
+                        <td>@Html.DisplayFor(modelItem => item.BookName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CategoryName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.AuthorName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                        <td>@Html.DisplayFor(modelItem => item.BookPrice)</td>
+                        <td>@Html.DisplayFor(modelItem => item.RentPrice)</td>
+                        @{
+                            var datetime = item.ReachDate;
+                            <td>@datetime.ToString("dd MMM yyyy")</td>
+                        }
+                    <td>
+                        <button class="btn btn-custom" data-ID="@item.BookId" onclick="EditModule(this)" style="margin:5px;">Edit</button>
+                        @{
+                            if (item.IsAvailable == true)
+                            {
+                                <button class="btn btn-custom" data-id="@item.BookId" style="margin:5px;" onclick="RentModule(this)">Rent</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-custom" data-id="@item.BookId" style="margin:5px;" onclick="RentModule(this)" disabled>Rent</button>
+                            }
+                            <button class="btn btn-danger" data-id="@item.BookId" data-modalid="modal_delete" onclick="deleteconfirmation(this)" style="margin:5px;">Delete</button>
+
+                        }
+                    </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="col-md-12">
+            <div class="pagedList" style="text-align:center">
+                @Html.PagedListPager(Model.Results, page => Url.Action("BookList", "Book", new { page }), PagedListRenderOptions.ClassicPlusFirstAndLast)
+            </div>
+        </div>
+
+    </div>
+</div>

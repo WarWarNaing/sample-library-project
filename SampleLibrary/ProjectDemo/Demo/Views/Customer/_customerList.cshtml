@@ -1,0 +1,45 @@
+﻿@model DAL.Model.PagedListClient<DAL.Model.Customer>
+@using PagedList;
+@using PagedList.Mvc;
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-table me-1"></i>
+        Customer List
+    </div>
+    <div class="card-body" style="overflow-x:scroll;overflow-y:scroll;">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Customers</th>
+                    <th>Phone</th>
+                    <th>State</th>
+                    <th>Township</th>
+                    <th>Address</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Results)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.CustomerName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Phone)</td>
+                        <td>@Html.DisplayFor(modelItem => item.State)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Township)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Address)</td>
+                        <td>
+                            <a class="btn btn-custom" data-ID="@item.CustomerId" onclick="EditModule(this)">Edit</a>
+                            <a class="btn btn-danger" data-id="@item.CustomerId" data-modalid="modal_delete" onclick="deleteconfirmation(this)">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="col-md-12">
+            <div class="pagedList" style="text-align:center">
+                @Html.PagedListPager(Model.Results, page => Url.Action("CustomerList", "Customer", new { page }), PagedListRenderOptions.ClassicPlusFirstAndLast)
+            </div>
+        </div>
+    </div>
+</div>

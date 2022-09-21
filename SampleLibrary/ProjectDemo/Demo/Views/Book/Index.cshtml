@@ -1,0 +1,430 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="card mb-4" style="border:none;">
+    <div class="row card-body">
+        <div class="col-md-9">
+            <!-- Toast -->
+            <div class="toast" id="toast-success">
+                <b>Alert!</b> Book record save successfully. Thank you.
+            </div>
+            <div class="toast" id="toast-delete">
+                <b>Alert!</b> Record has been deleted successfully. Thank you.
+            </div>
+            <div class="toast" id="toast-failed">
+                <b>Alert!</b> Sorry! There is something went wrong. Please, try again!
+            </div>
+            <div class="toast" id="toast-rentbook">
+                <b>Alert!</b> Rented book record has been saved successfully. Thank you.
+            </div>
+        </div>
+        <div class="col-md-2"><input type="text" class="form-control" placeholder="Search Books" name="q" onkeyup="keySearch(this.value)" id="txt_SearchText" autocomplete="off"></div>
+        <div class="col-md-1"><a class="btn btn-custom" onclick="AddBook()" style="float:right;">Add Book</a></div>
+    </div>
+</div>
+<div id="div_book_list">
+</div>
+
+<div class="modal fade" id="myModalModule" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="myModule">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_delete" class="modal fade in" style="display: none; padding-right: 17px;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="delete_title_info">Delete Confirmation</h5>
+            </div>
+
+            <div class="modal-body">
+                <h6 class="text-semibold" id="delete_body_title_info">Are you sure to delete?</h6>
+                <p id="delete_body_info">If you are sure to delete this, click 'Delete' and note that it is irreversible in action.</p>
+
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn btn-default btn-block" data-dismiss="modal" style="color:white;background-color:darkgray;" onclick="btnClose()">Close</a>
+                <button type="button" id="btn_delete" onclick="deleteEntity(this)" data-id="" data-modal-id="" class="btn btn-danger btn-rounded legitRipple"><i class="glyphicon glyphicon-trash"></i>&nbsp;Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var page = 1;
+        var pagesize = 5;
+        var bookname;
+
+        $(function () {
+            $('.nav-link').removeClass('menu-active');
+            $('#nav-book').addClass('menu-active');
+
+            LoadMainList();
+            initPaging();
+        });
+
+        function initPaging() {
+            $("#div_book_list").on("click", ".pagedList a", function (e) {
+                e.preventDefault();
+                var $a = $(this).attr("href");
+                try {
+                    var pageurl = $a.split(/=/);
+                    page = pageurl[1];
+                    if (page == null) {
+                        page = 1;
+                    }
+                }
+                catch (e) {
+                    page = 1;
+                }
+                LoadMainList();
+            });
+        }
+
+        function keySearch(e) {
+            Search();
+        }
+
+        function Search() {
+            bookname = $('#txt_SearchText').val();
+            LoadMainList(true);
+        }
+
+          function LoadMainList() {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("BookList", "Book")',
+                data: { bookname: bookname, pagesize: pagesize, page: page},
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    $('#div_book_list').empty().append(result);
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function btnClose() {
+            $('#myModalModule').modal('hide');
+            $('#modal_delete').modal('hide');
+        }
+
+        function AddBook() {
+            ModuleForm("Add", 0);
+        }
+
+        function EditModule(e) {
+            var ID = $(e).attr('data-ID');
+            ModuleForm("Edit", ID);
+        }
+
+        function ModuleForm(FormType, ID) {
+              $.ajax({
+                cache: false,
+                url: '@Url.Action("BookForm", "Book")',
+                data: { FormType: FormType, ID: ID },
+                beforeSend: function () {
+
+                },
+                success: function (result) {
+                    $('#myModule').empty().append(result);
+                },
+                  complete: function () {
+                      $('#myModalModule').modal({ backdrop: 'static' }, 'show');
+                      $('#myModalModule').modal('show');
+
+                      if (FormType == "Add") {
+                          $("#datepicker").datepicker({
+                              autoclose: true,
+                              todayHighlight: true
+                          }).datepicker('update', new Date());
+                      } else {
+                          var date = new Date($('#reachDate').val());
+                          $("#datepicker").datepicker({
+                              autoclose: true,
+                              todayHighlight: true
+                          }).datepicker('update', date);
+                      }
+
+                      bindCategoryDD();
+                      bindAuthorDD();
+
+                    $('#ModuleForm').submit(function (e) {
+                        e.preventDefault();
+
+                        $.ajax({
+                            cache: false,
+                            type: "Post",
+                            url: '@Url.Action("Save", "Book")',
+                            data: $(this).serialize(),
+                            beforeSend: function () {
+
+                            },
+                            success: function (result) {
+                                $('#myModalModule').modal('hide');
+                                if (result == "Success") {
+                                    $("#toast-success").fadeIn(400).delay(4000).fadeOut(400);
+                                } else {
+                                    $("#toast-failed").fadeIn(400).delay(4000).fadeOut(400);
+                                }
+                            },
+                            complete: function () {
+                                LoadMainList();
+                            }
+                        })
+                    });
+                }
+            })
+        }
+
+        function RentModule(e) {
+            var ID = $(e).attr('data-ID');
+             $.ajax({
+                cache: false,
+                url: '@Url.Action("GetBookById", "Book")',
+                data: { ID: ID },
+                beforeSend: function () {
+
+                },
+                success: function (result) {
+                    $('#myModule').empty().append(result);
+                },
+                  complete: function () {
+                      $('#myModalModule').modal({ backdrop: 'static' }, 'show');
+                      $('#myModalModule').modal('show');
+
+                      bindCustomerDD();
+
+                      $("#startdatedatepicker").datepicker({
+                          autoclose: true,
+                          todayHighlight: true
+                      }).datepicker('update', new Date());
+
+                      $("#enddatedatepicker").datepicker({
+                          autoclose: true,
+                          todayHighlight: true
+                      }).datepicker('update', new Date());
+
+                    $('#ModuleForm').submit(function (e) {
+                        e.preventDefault();
+
+                        $.ajax({
+                            cache: false,
+                            type: "Post",
+                            url: '@Url.Action("SaveRentBook", "RentedBooks")',
+                            data: $(this).serialize(),
+                            beforeSend: function () {
+
+                            },
+                            success: function (result) {
+                                if (result == "Success") {
+                                    $("#toast-rentbook").fadeIn(400).delay(4000).fadeOut(400);
+                                } else {
+                                    $("#toast-rentbook").fadeIn(400).delay(4000).fadeOut(400);
+                                }
+
+                                $('#myModalModule').modal('hide');
+                            },
+                            complete: function () {
+                                LoadMainList();
+                            }
+                        })
+                    });
+                }
+            })
+        }
+
+        function bindCustomerDD(){
+            $(".selectpicker")
+            .selectpicker()
+            .filter(".with-ajax")
+            .ajaxSelectPicker({
+                ajax: {
+                    // data source
+                    url: '@Url.Action("_getCustomerList", "Customer")',
+                    // ajax type
+                    type: 'GET',
+                    // data type
+                    dataType: 'json',
+                    // Use "{{{q}}}" as a placeholder and Ajax Bootstrap Select will
+                    // automatically replace it with the value of the search query.
+                    data: {
+                        q:"{{{q}}}"
+                    }
+                },
+                locale: {
+                    emptyTitle: "Select and Begin Typing"
+                },
+                // function to preprocess JSON data
+                preprocessData: function (data) {
+                    var i, l = data.length, array = [];
+                    if (l) {
+                        for (i = 0; i < l; i++) {
+                            array.push($.extend(true, data[i], {
+                                text : data[i].CustomerName,
+                                value: data[i].CustomerId
+                            }));
+                        }
+                    }
+                    // You must always return a valid array when processing data. The
+                    // data argument passed is a clone and cannot be modified directly.
+                    return array;
+                }
+            });
+
+            $("select").trigger("change");
+
+            $(".bootstrap-select").click(function () {
+                $(".bootstrap-select").toggleClass('open');
+            });
+
+            $('.selectpicker').on('changed.bs.select', function (e) {
+                var customerId = e.target.value;
+                $('#customerId').val(customerId);
+                getCustomerById(customerId);
+            });
+        }
+
+        function getCustomerById(Id) {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("GetCustomerById", "Customer")',
+                data: { ID: Id },
+                beforeSend: function () {
+
+                },
+                success: function (result) {
+                    $('#phoneId').val(result.Phone);
+                    $('#addressId').val(result.Address);
+                    $('#addresstext').text(result.Address);
+                },
+                complete: function () {
+                },
+            })
+        }
+
+        function bindCategoryDD() {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("GetCategory", "Book")',
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    $('#DD_category').empty();
+                    $('#DD_category').append('<option value="0">-------Select Category-------</option>');
+
+                    for (var i = 0; i < result.length; i++) {
+                        $('#DD_category').append('<option value="' + result[i].CategoryId + '">' + result[i].CategoryName + '</option>')
+                    };
+
+                    var existingval = $('#categoryId').val();
+                    $('#DD_category').val(existingval);
+
+                    $('#DD_category').on('change', function () {
+                        var categoryId = $('#DD_category :selected').val();
+                        var categoryName = $('#DD_category :selected').text();
+                        $('#categoryId').val(categoryId);
+                        $('#categoryName').val(categoryName);
+
+                    });
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function bindAuthorDD() {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("GetAuthor", "Book")',
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    $('#DD_author').empty();
+                    $('#DD_author').append('<option value="0">-------Select Author-------</option>');
+                    for (var i = 0; i < result.length; i++) {
+                        $('#DD_author').append('<option value="' + result[i].AuthorId + '">' + result[i].AuthorName + '</option>')
+                    };
+
+                    var existingval = $('#authorId').val();
+                    $('#DD_author').val(existingval);
+
+                    $('#DD_author').on('change', function () {
+                        var authorId = $('#DD_author :selected').val();
+                        var authorName = $('#DD_author :selected').text();
+                        $('#authorId').val(authorId);
+                        $('#authorName').val(authorName);
+
+                    });
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function ShowImagePreviewArticle(imageUploader) {
+            photoStr = "";
+            if (imageUploader.files && imageUploader.files[0]) {
+                var dvPreview = $("#dvPreview");
+                dvPreview.html("");
+                $($("#filearticle").get(0).files).each(function () {
+                    var file = $(this);
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        var img = $("<img />");
+                        img.attr("style", "height:100px;width: 100px");
+                        img.attr("src", e.target.result);
+                        dvPreview.append(img);
+                    }
+                    reader.readAsDataURL(file[0]);
+                    reader.onloadend = function () {
+                        var base64data = reader.result + "_";
+                        photoStr += base64data;
+                        $('#photo_article').val(photoStr);
+                    }
+                });
+            }
+        }
+
+        function deleteconfirmation(e) {
+            var modal = $('#modal_delete');
+            var btn_delete = $('#btn_delete');
+            btn_delete.data('id', $(e).attr('data-id'));
+            btn_delete.data('modal-id', $(e).attr('data-modalid'));
+            modal.modal('show');
+        }
+
+        function deleteEntity(e) {
+            var id = $(e).data('id');
+            var modalid = $(e).data('modal-id');
+            $.ajax({
+                url: '@Url.Action("Delete", "Customer")',
+                type: 'GET',
+                data: { ID: id },
+                beforeSend: function () {
+                    $('.btn').prop('disabled', true);
+                },
+                success: function (response) {
+                    if (response == "Success") {
+                        $("#toast-delete").fadeIn(400).delay(4000).fadeOut(400);
+                    }
+                    else {
+                        $("#toast-failed").fadeIn(400).delay(4000).fadeOut(400);
+                    }
+                    $('.btn').prop('disabled', false);
+                    $('#' + modalid).modal('hide');
+                    LoadMainList();
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,51 @@
+﻿@model DAL.Model.PagedListClient<DAL.Model.RentedBook>
+@using PagedList;
+@using PagedList.Mvc;
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-table me-1"></i>
+        Rented Books List
+    </div>
+    <div class="card-body" style="overflow-x:scroll;overflow-y:scroll;">
+        <table class="table table-bordered table-hover table-responsive">
+            <thead>
+                <tr>
+                    <th>Customers</th>
+                    <th>Books</th>
+                    <th>Phone</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Results)
+                {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.CustomerName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.BookName)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Phone)</td>
+                    @{
+                        var startdate = item.StartDate;
+                        <td>@startdate.ToString("dd MMM yyyy")</td>
+                    } 
+                    @{
+                        var enddate = item.EndDate;
+                        <td>@enddate.ToString("dd MMM yyyy")</td>
+                    }
+                <td>
+                    <a class="btn btn-custom" data-id="@item.Id" style="margin:5px;" onclick="RePay(this)">RePay</a>
+                </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        <div class="col-md-12">
+            <div class="pagedList" style="text-align:center">
+                @Html.PagedListPager(Model.Results, page => Url.Action("list", "RentedBooks", new { page }), PagedListRenderOptions.ClassicPlusFirstAndLast)
+            </div>
+        </div>
+
+    </div>
+</div>

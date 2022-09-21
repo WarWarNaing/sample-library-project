@@ -1,0 +1,140 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="card mb-4" style="border:none;">
+    <div class="row card-body">
+        <div class="col-md-8">
+        </div>
+        <div class="col-md-2"><input type="text" class="form-control" placeholder="Search Customers" name="q" onkeyup="keySearch(this.value)" id="txt_customer" autocomplete="off"></div>
+        <div class="col-md-2"><input type="text" class="form-control" placeholder="Search Books" name="q" onkeyup="keySearch(this.value)" id="txt_book" autocomplete="off"></div>
+    </div>
+</div>
+<div id="div_rentedbook_list">
+</div>
+
+<div class="modal fade" id="myModalModule" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="myModule">
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script type="text/javascript">
+        var page = 1;
+        var pagesize = 8;
+        var bookname;
+        var customername;
+
+        $(function () {
+            $('.nav-link').removeClass('menu-active');
+            $('#nav-rentedbooks').addClass('menu-active');
+
+            LoadMainList();
+            initPaging();
+        });
+
+        function initPaging() {
+            $("#div_rentedbook_list").on("click", ".pagedList a", function (e) {
+                e.preventDefault();
+                var $a = $(this).attr("href");
+                try {
+                    var pageurl = $a.split(/=/);
+                    page = pageurl[1];
+                    if (page == null) {
+                        page = 1;
+                    }
+                }
+                catch (e) {
+                    page = 1;
+                }
+                LoadMainList();
+            });
+        }
+
+        function keySearch(e) {
+            Search();
+        }
+
+        function Search() {
+            bookname = $('#txt_book').val();
+            customername = $('#txt_customer').val();
+            LoadMainList(true);
+        }
+
+          function LoadMainList() {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("list", "RentedBooks")',
+                data: { bookname: bookname, customername: customername, pagesize: pagesize, page: page},
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    $('#div_rentedbook_list').empty().append(result);
+                },
+                complete: function () {
+                }
+            });
+        }
+        function btnClose() {
+            $('#myModalModule').modal('hide');
+            $('#modal_delete').modal('hide');
+        }
+
+        function check() {
+            var value = document.getElementById('checkId').value;
+            $('#isdestrictId').val(value);
+            $(".div_customer_info").css("display", "block");
+            $(".div_confirm_btn").removeAttr('disabled');
+        }
+
+        function uncheck() {
+            var value = document.getElementById('uncheckId').value;
+            $('#isdestrictId').val(value);
+            $(".div_customer_info").css("display", "none");
+            $(".div_confirm_btn").removeAttr('disabled');
+        }
+
+        function RePay(e) {
+            var ID = $(e).attr('data-id');
+              $.ajax({
+                cache: false,
+                url: '@Url.Action("GetRecordById", "RentedBooks")',
+                data: { ID: ID },
+                beforeSend: function () {
+
+                },
+                success: function (result) {
+                    $('#myModule').empty().append(result);
+                },
+                  complete: function () {
+                      $('#myModalModule').modal({ backdrop: 'static' }, 'show');
+                      $('#myModalModule').modal('show');
+
+                    $('#ModuleForm').submit(function (e) {
+                        e.preventDefault();
+
+                        $.ajax({
+                            cache: false,
+                            type: "Post",
+                            url: '@Url.Action("Save", "RentedBooks")',
+                            data: $(this).serialize(),
+                            beforeSend: function () {
+
+                            },
+                            success: function (result) {
+                                $('#myModalModule').modal('hide');
+                            },
+                            complete: function () {
+                                LoadMainList();
+                            }
+                        })
+                    });
+                }
+            })
+        }
+    </script>
+}

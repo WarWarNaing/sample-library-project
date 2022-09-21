@@ -1,0 +1,135 @@
+js
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.5/js/bootstrap-select.js"></script>
+
+==================================================================================
+
+client index
+
+        function bindDoctorDD(){
+           
+            $(".selectpicker")
+            .selectpicker()
+            .filter(".with-ajax")
+            .ajaxSelectPicker({
+                ajax: {
+
+                    // data source
+                    url: '@Url.Action("_doctorList", "DoctorSchedule")',
+
+                    // ajax type
+                    type: 'GET',
+
+                    // data type
+                    dataType: 'json',
+
+                    // Use "{{{q}}}" as a placeholder and Ajax Bootstrap Select will
+                    // automatically replace it with the value of the search query.
+                    data: {
+                        q:"{{{q}}}"
+                    }
+                },
+                locale: {
+                    emptyTitle: "Select and Begin Typing"
+                },
+                // function to preprocess JSON data
+                preprocessData: function (data) {
+                    var i, l = data.length, array = [];
+                    if (l) {
+                        for (i = 0; i < l; i++) {
+                            array.push($.extend(true, data[i], {
+                                text : data[i].Name + ' (' + data[i].Title + ')',
+                                value: data[i].ID,
+                                data : {
+                                    subtext: data[i].Specialty
+                                }
+                            }));
+                        }
+                    }
+                    // You must always return a valid array when processing data. The
+                    // data argument passed is a clone and cannot be modified directly.
+                    return array;
+                }
+
+
+
+            });
+            $("select").trigger("change");
+          //  $('.selectpicker').selectpicker('refresh');
+
+            //function chooseSelectpicker(index, selectpicker) {
+            //     id= $(selectpicker).val(index);
+            //    console.log(id);
+            //    $(selectpicker).selectpicker('refresh');
+            //}
+
+           
+            $('.selectpicker').on('changed.bs.select', function (e) {
+                 id = e.target.value;
+                 getdoctorbyid(id);
+            });
+
+         
+                   
+        }
+
+
+============================================================================
+form
+
+  <select id="ajax-select" class="selectpicker with-ajax zawgyi_text" data-live-search="true">
+
+</select>
+
+
+
+
+================================================================================
+mvc controller
+
+ public async Task<ActionResult> _doctorList(string q = null)
+        {
+            int hospitalid = CareMeClient.Helper.CookieHelper.getstaffHospitalID();
+            List<tbDoctor> result = await DoctorApiRequestHelper.exclusiveList(hospitalid,q);
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+
+apicontroller
+
+ [HttpGet]
+        [Route("api/doctor/exclusiveList")]
+        public HttpResponseMessage ExclusiveList(HttpRequestMessage request,int hospitalid = 0,string q = null)
+        {
+            Expression<Func<tbDoctor, bool>> doctornamefilter = null;
+            if (q != null)
+            {
+                doctornamefilter = PredicateBuilder.New<tbDoctor>();
+                doctornamefilter = doctornamefilter.Or(l => l.Name.StartsWith(q)).Or(a => a.NameMyan.StartsWith(q));
+            }
+            else
+            {
+                doctornamefilter = l => l.IsDeleted != true;
+            }
+
+            IQueryable<tbDoctorHospital> dohos =  doctorhospitalRepo.GetWithoutTracking().Where(b => b.IsDeleted != true && b.HospitalID == hospitalid);
+            List<tbDoctor> doctors = doctorRepo.GetWithoutTracking().Where(x => !dohos.Select(a => a.DoctorID).Contains(x.ID)).Where(doctornamefilter).ToList();
+            
+            // List<tbDoctor> doctors = dbContext.tbDoctors.Where(a => a.IsDeleted != true).Take(20).ToList();
+            return request.CreateResponse<List<tbDoctor>>(HttpStatusCode.OK, doctors);
+        }
+
+==============================================================================================
+infra
+
+ public static async Task<List<tbDoctor>> exclusiveList(int hospitalid =0,string doctorname =null)
+        {
+            string url = string.Format("api/doctor/exclusiveList?hospitalid={0}&q={1}", hospitalid,doctorname);
+            var data = await ApiRequest<List<tbDoctor>>.GetRequest(url);
+            return data;
+        }
+
+
+--------------------------------------------------------------------------------------
+form
+

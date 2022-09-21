@@ -1,0 +1,37 @@
+﻿@model DAL.Model.RentedBook
+
+<div class="card">
+    <div class="card-header"><h5 class="text-center font-weight-light my-6">Confirm to repay the book to library</h5></div>
+    <div class="card-body">
+        <form id="ModuleForm" method="Post">
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label>Is there expired the specified return date? If yes, they must pay penalty fee.</label>
+                    @Html.HiddenFor(x => x.Id)
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <input type="radio"  name="IsExpired" value="True" id="checkId" onclick="check()"/>
+                    <span>IsExpired</span>
+                </div>
+                <div class="col-md-6">
+                    <input type="radio"  name="IsExpired" value="False" id="uncheckId" onclick="uncheck()"/>
+                    <span>None</span>
+                </div>
+                <input type="hidden" name="IsDeStrict" id="isdestrictId" value="@Model.IsDeStrict"/>
+            </div>
+            <div class="row mb-3 div_customer_info" style="display:none;">
+                <div class="col-md-6">
+                    <input class="form-control" name="PenaltyFee" type="number" placeholder="Enter Penalty Fee" style="width:80%;" />
+                </div>
+            </div>
+            <div class="row card-footer text-center py-3" style="padding-right:0px!important">
+                <div class="col-md-12">
+                    <button class="btn btn-custom btn-block div_confirm_btn" disabled type="submit" style="float:right;margin-left:10px;">Confirm</button>
+                    <a class="btn btn-default btn-block" data-dismiss="modal" style="color:white;background-color:darkgray;float:right;" onclick="btnClose()">Close</a>
+                </div>
+            </div>
+        </form>            
+    </div>
+</div>

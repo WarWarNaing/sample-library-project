@@ -1,0 +1,60 @@
+﻿@model DAL.Model.RentedBook
+
+<div class="card">
+    <div class="card-header"><h3 class="text-center font-weight-light my-6">Rent Book</h3></div>
+    <div class="card-body">
+        <form id="ModuleForm" method="Post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>Book Name</label>
+                    <input class="form-control" id="bookName" value="@Model.BookName" name="BookName" style="background-color: #f0f0f0; border-color: #f0f0f0;" readonly />
+                    @Html.HiddenFor(x => x.BookId)
+                </div>
+                <div class="col-md-6">
+                    <label for="phone">RentPrice</label>
+                    <input class="form-control" id="quantity" value="@Model.RentPrice" name="RentPrice" style="background-color: #f0f0f0; border-color: #f0f0f0;"  readonly />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>Customer</label>
+                    <select id="ajax-select" class="selectpicker with-ajax" data-live-search="true"></select>
+                    <input type="hidden" id="customerId" name="CustomerId" value="@Model.CustomerId" />
+                </div>
+                <div class="col-md-6 div_customer_info">
+                    <label for="phone">Phone</label>
+                    <input class="form-control" id="phoneId" value="@Model.Phone" name="Phone" type="number" style="background-color: #f0f0f0; border-color: #f0f0f0;"  readonly />
+                </div>
+            </div>
+            <div class="row mb-3 div_customer_info">
+                <div class="col-md-12">
+                    <label>Address</label>
+                    <textarea class="form-control" readonly id="addresstext" style="background-color: #f0f0f0; border-color: #f0f0f0;" ></textarea>
+                    <input type="hidden" id="addressId" name="Address" value="@Model.Address" />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>Start Date</label><span class="text-danger">*</span>
+                    <div id="startdatedatepicker" class="input-group date" data-date-format="mm-dd-yyyy">
+                        <input class="form-control" type="text" id="StartDateForm" name="StartDate" />
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>End Date</label><span class="text-danger">*</span>
+                    <div id="enddatedatepicker" class="input-group date" data-date-format="mm-dd-yyyy">
+                        <input class="form-control" type="text" id="EndDateForm" name="EndDate" />
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="row card-footer text-center py-3" style="padding-right:0px!important">
+                <div class="col-md-12">
+                    <button class="btn btn-custom btn-block" type="submit" style="float:right;margin-left:10px;">Save</button>
+                    <a class="btn btn-default btn-block" data-dismiss="modal" style="color:white;background-color:darkgray;float:right;" onclick="btnClose()">Close</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

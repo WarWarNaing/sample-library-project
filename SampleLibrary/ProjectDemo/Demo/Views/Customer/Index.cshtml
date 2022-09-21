@@ -1,0 +1,265 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="card mb-4" style="border:none;">
+    <div class="row card-body">
+        <div class="col-md-8">
+            <!-- Toast -->
+            <div class="toast" id="toast-success">
+                <b>Alert!</b> Customer record save successfully. Thank you.
+            </div>
+            <div class="toast" id="toast-delete">
+                <b>Alert!</b> Record has been deleted successfully. Thank you.
+            </div>
+            <div class="toast" id="toast-failed">
+                <b>Alert!</b> Sorry! There is something went wrong. Please, try again!
+            </div>
+        </div>
+        <div class="col-md-2"><input type="text" class="form-control" placeholder="Search Customers" name="q" onkeyup="keySearch(this.value)" id="txt_SearchText" autocomplete="off"></div>
+        <div class="col-md-2"><a class="btn btn-custom" onclick="AddCustomer()" style="float:right;">Add Customer</a></div>
+    </div>
+</div>
+<div id="div_customer_list">
+
+</div>
+
+<div class="modal fade" id="myModalModule" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="myModule">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal_delete" class="modal fade in" style="display: none; padding-right: 17px;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="delete_title_info">Delete Confirmation</h5>
+            </div>
+
+            <div class="modal-body">
+                <h6 class="text-semibold" id="delete_body_title_info">Are you sure to delete?</h6>
+                <p id="delete_body_info">If you are sure to delete this, click 'Delete' and note that it is irreversible in action.</p>
+
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn btn-default btn-block" data-dismiss="modal" style="color:white;background-color:darkgray;" onclick="btnClose()">Close</a>
+                <button type="button" id="btn_delete" onclick="deleteEntity(this)" data-id="" data-modal-id="" class="btn btn-danger btn-rounded legitRipple"><i class="glyphicon glyphicon-trash"></i>&nbsp;Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+        var page = 1;
+        var pagesize = 10;
+        var customername;
+
+        $(function () {
+            $('.nav-link').removeClass('menu-active');
+            $('#nav-customer').addClass('menu-active');
+
+            LoadMainList();
+            initPaging();
+        });
+
+        function initPaging() {
+            $("#div_customer_list").on("click", ".pagedList a", function (e) {
+                e.preventDefault();
+                var $a = $(this).attr("href");
+                try {
+                    var pageurl = $a.split(/=/);
+                    page = pageurl[1];
+                    if (page == null) {
+                        page = 1;
+                    }
+                }
+                catch (e) {
+                    page = 1;
+                }
+                LoadMainList();
+            });
+        }
+
+        function keySearch(e) {
+            Search();
+        }
+
+        function Search() {
+            customername = $('#txt_SearchText').val();
+            LoadMainList(true);
+        }
+
+          function LoadMainList() {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("CustomerList", "Customer")',
+                data: { customername: customername, pagesize: pagesize, page: page},
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    $('#div_customer_list').empty().append(result);
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function btnClose() {
+            $('#myModalModule').modal('hide');
+            $('#modal_delete').modal('hide');
+        }
+
+        function AddCustomer() {
+            ModuleForm("Add", 0);
+        }
+
+        function EditModule(e) {
+            var ID = $(e).attr('data-ID');
+            ModuleForm("Edit", ID);
+        }
+
+        function ModuleForm(FormType, ID) {
+              $.ajax({
+                cache: false,
+                url: '@Url.Action("CustomerForm", "Customer")',
+                data: { FormType: FormType, ID: ID },
+                beforeSend: function () {
+
+                },
+                success: function (result) {
+                    $('#myModule').empty().append(result);
+                },
+                  complete: function () {
+                      $('#myModalModule').modal({ backdrop: 'static' }, 'show');
+                      $('#myModalModule').modal('show');
+                      bindStateDD();
+
+                    $('#ModuleForm').submit(function (e) {
+                        e.preventDefault();
+
+                        $.ajax({
+                            cache: false,
+                            type: "Post",
+                            url: '@Url.Action("Save", "Customer")',
+                            data: $(this).serialize(),
+                            beforeSend: function () {
+
+                            },
+                            success: function (result) {
+                                $('#myModalModule').modal('hide');
+                                if (result == "Success") {
+                                    $("#toast-success").fadeIn(400).delay(4000).fadeOut(400);
+                                } else {
+                                    $("#toast-failed").fadeIn(400).delay(4000).fadeOut(400);
+                                }
+                            },
+                            complete: function () {
+                                LoadMainList();
+                            }
+                        })
+                    });
+                }
+            })
+        }
+
+        function bindStateDD() {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("GetState", "Customer")',
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    $('#DD_state').empty();
+                    $('#DD_state').append('<option value="">-------Select State-------</option>');
+                    for (var i = 0; i < result.length; i++) {
+                        $('#DD_state').append('<option value="' + result[i].StateDivision + '">' + result[i].StateDivision + '</option>')
+                    };
+                    var existingval = $('#state').val();
+                    $('#DD_state').val(existingval);
+                    if (existingval != "") {
+                        bindTownShipDD(existingval);
+                        $('#DD_state').on('change', function () {
+                            state = $('#DD_state :selected').text();
+                            bindTownShipDD(state);
+                        });
+                    } else {
+                        $('#DD_state').on('change', function () {
+                            state = $('#DD_state :selected').text();
+                            bindTownShipDD(state);
+                        });
+                    }
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function bindTownShipDD(state) {
+            $.ajax({
+                cache: false,
+                url: '@Url.Action("GetTownShip", "Customer")',
+                data: { state: state },
+                beforeSend: function () {
+
+                },
+                success: function (result) {
+                      $('#DD_township').empty();
+                    $('#DD_township').append('<option value="">-------Select Township-------</option>');
+                    for (var i = 0; i < result.length; i++) {
+                        $('#DD_township').append('<option value="' + result[i] + '">' + result[i] + '</option>')
+                    };
+                    var existingtownship = $('#township').val();
+                    $('#DD_township').val(existingtownship);
+                    $('#DD_township').on('change', function () {
+                        township = $('#DD_township :selected').text();
+                        $('#DD_township').val(township);
+                    });
+                },
+                complete: function () {
+                }
+            });
+        }
+
+        function deleteconfirmation(e) {
+            var modal = $('#modal_delete');
+            var btn_delete = $('#btn_delete');
+            btn_delete.data('id', $(e).attr('data-id'));
+            btn_delete.data('modal-id', $(e).attr('data-modalid'));
+            modal.modal({ backdrop: 'static' }, 'show');
+            modal.modal('show');
+        }
+
+        function deleteEntity(e) {
+            var id = $(e).data('id');
+            var modalid = $(e).data('modal-id');
+            $.ajax({
+                url: '@Url.Action("Delete", "Customer")',
+                type: 'GET',
+                data: { ID: id },
+                beforeSend: function () {
+                    $('.btn').prop('disabled', true);
+                },
+                success: function (response) {
+                    $('#' + modalid).modal('hide');
+
+                    if (response == "Success") {
+                        $("#toast-delete").fadeIn(400).delay(4000).fadeOut(400);
+                    }
+                    else {
+                        $("#toast-failed").fadeIn(400).delay(4000).fadeOut(400);
+                    }
+                    LoadMainList();
+
+                    $('.btn').prop('disabled', false);
+                }
+            });
+        }
+    </script>
+}
